@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Bacteria Monitoring & Estimation System</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #1a237e;
+      --secondary-color: #0d47a1;
+      --accent-color: #2962ff;
+      --warning-color: #ff6d00;
+      --danger-color: #d50000;
+    }
+
+    body {
+      background-color: #f5f6fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .dashboard-header {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      padding: 2rem 0;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .bacteria-alert {
+      background: rgba(213, 0, 0, 0.1);
+      border-left: 4px solid var(--danger-color);
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      border-radius: 4px;
+    }
+
+    .bacteria-safe {
+      background: rgba(76, 175, 80, 0.1);
+      border-left: 4px solid #4caf50;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      border-radius: 4px;
+    }
+
+    .parameter-card {
+      background: white;
+      border-radius: 15px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease;
+    }
+
+    .bacteria-card {
+      background: linear-gradient(135deg, #1a237e, #0d47a1);
+      color: white;
+    }
+
+    .parameter-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .parameter-value {
+      font-size: 1.8rem;
+      font-weight: bold;
+      margin: 0.5rem 0;
+    }
+
+    .chart-container {
+      background: white;
+      border-radius: 15px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .analysis-card {
+      background: white;
+      border-radius: 15px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .factor-influence {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .influence-bar {
+      flex-grow: 1;
+      height: 8px;
+      background: #e0e0e0;
+      border-radius: 4px;
+      margin: 0 1rem;
+      overflow: hidden;
+    }
+
+    .influence-value {
+      height: 100%;
+      background: var(--accent-color);
+      transition: width 0.3s ease;
+    }
+
+    .bacteria-level {
+      font-size: 3rem;
+      font-weight: bold;
+      text-align: center;
+      margin: 1rem 0;
+      color: white;
+    }
+
+    .bacteria-gauge {
+      position: relative;
+      width: 200px;
+      height: 100px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 100px 100px 0 0;
+      overflow: hidden;
+    }
+
+    .gauge-fill {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.3);
+      transition: height 0.3s ease;
+    }
+
+    .risk-level {
+      display: inline-block;
+      padding: 0.25rem 1rem;
+      border-radius: 15px;
+      font-weight: bold;
+      margin: 0.5rem 0;
+    }
+
+    .risk-low { background: #4caf50; color: white; }
+    .risk-medium { background: #ff9800; color: white; }
+    .risk-high { background: #f44336; color: white; }
+  </style>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+
+<div class="dashboard-header">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h1><i class="fas fa-bacteria me-3"></i>Bacterial Growth Analysis System</h1>
+        <p class="mb-0">Advanced monitoring and prediction display platform</p>
+      </div>
+      <div class="col-md-4 text-end">
+        <img src="https://cdn-icons-gif.flaticon.com/11651/11651661.gif" style="width: 60px" alt="Bacteria monitoring" class="img-fluid rounded-circle">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <!-- Main Bacteria Card -->
+  <div class="row">
+    <div class="col-12">
+      <div class="parameter-card bacteria-card">
+        <div class="row align-items-center">
+          <div class="col-md-4 text-center">
+            <i class="fas fa-bacteria parameter-icon"></i>
+            <h3>Estimated Bacteria Level</h3>
+            <div class="bacteria-level" id="bacteria-level">--%</div>
+          </div>
+          <div class="col-md-4">
+            <div class="bacteria-gauge">
+              <div class="gauge-fill" id="bacteria-gauge"></div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <h4>Risk Level</h4>
+            <div id="risk-indicator"></div>
+            <div id="risk-description"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Parameter Cards -->
+  <div class="row">
+    <div class="col-md-3">
+      <div class="parameter-card">
+        <i class="fas fa-temperature-high parameter-icon text-danger"></i>
+        <h3>Temperature</h3>
+        <div class="parameter-value" id="temperature-value">--°C</div>
+        <div id="temp-influence"></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="parameter-card">
+        <i class="fas fa-vial parameter-icon text-primary"></i>
+        <h3>pH Level</h3>
+        <div class="parameter-value" id="ph-value">--</div>
+        <div id="ph-influence"></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="parameter-card">
+        <i class="fas fa-water parameter-icon text-info"></i>
+        <h3>Turbidity</h3>
+        <div class="parameter-value" id="turbidity-value">-- NTU</div>
+        <div id="turbidity-influence"></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="parameter-card">
+        <i class="fas fa-flask parameter-icon text-warning"></i>
+        <h3>TDS</h3>
+        <div class="parameter-value" id="tds-value">-- PPM</div>
+        <div id="tds-influence"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bacteria Analysis -->
+  <div class="row">
+    <div class="col-md-12">
+      <div class="analysis-card">
+        <h2><i class="fas fa-microscope me-2"></i>Bacterial Growth Analysis</h2>
+        <div id="bacteriaAnalysis"></div>
+      </div>
+    </div>
+  </div>
+
+<h2 style="text-align: center;"> Graphical Analysis </h2>
+  <!-- Chart Divs -->
+  <div class="row">
+    <div class="col-12">
+      <div class="chart-container">
+        <div id="BacteriaPercentageChart"></div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="chart-container">
+        <div id="temperatureChart"></div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="chart-container">
+        <div id="phChart"></div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="chart-container">
+        <div id="turbidityChart"></div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="chart-container">
+        <div id="TDSChart"></div>
+      </div>
+    </div>
+  </div>
+</div>>
+
+  <script>
+// Enhanced bacteria estimation algorithm
+function estimateBacteriaGrowth(temperature, ph, turbidity, tds) {
+  // Weight factors for each parameter
+  const weights = {
+    temperature: 0.3,
+    ph: 0.25,
+    turbidity: 0.2,
+    tds: 0.25
+  };
+
+  // Temperature influence (20-40°C optimal)
+  let tempFactor = 0;
+  if (temperature >= 20 && temperature <= 40) {
+    tempFactor = 1 - Math.abs((temperature - 30) / 20);
+  } else {
+    tempFactor = Math.max(0, 1 - Math.abs(temperature - 30) / 30);
+  }
+
+  // pH influence (6.5-7.5 optimal)
+  let phFactor = 0;
+  if (ph >= 6.5 && ph <= 7.5) {
+    phFactor = 1 - Math.abs((ph - 7) / 1);
+  } else {
+    phFactor = Math.max(0, 1 - Math.abs(ph - 7) / 2);
+  }
+
+  // Turbidity influence (0-15 NTU no impact, 15-30 slow, 30-100 faster)
+  let turbidityFactor = 0;
+  if (turbidity > 15 && turbidity <= 30) {
+    turbidityFactor = (turbidity - 15) / 60; // Slow increase: Max 0.25 at 30 NTU
+  } else if (turbidity > 30) {
+    turbidityFactor = Math.min(1, 0.25 + (turbidity - 30) / 70); // Faster: Maxes at 1 (100%) at 100 NTU
+  }
+
+  // TDS influence (200-1000 PPM optimal)
+  let tdsFactor = 0;
+  if (tds >= 200 && tds <= 1000) {
+    tdsFactor = 1 - Math.abs((tds - 600) / 800);
+  } else {
+    tdsFactor = Math.max(0, 1 - Math.abs(tds - 600) / 1000);
+  }
+
+  // Calculate influence percentages
+  const influences = {
+    temperature: tempFactor * 100,
+    ph: phFactor * 100,
+    turbidity: turbidityFactor * 100,
+    tds: tdsFactor * 100
+  };
+
+  // Calculate weighted bacteria growth potential
+  const bacteriaPercentage = (
+    tempFactor * weights.temperature +
+    phFactor * weights.ph +
+    turbidityFactor * weights.turbidity +
+    tdsFactor * weights.tds
+  ) * 100;
+
+  return {
+    percentage: Math.round(bacteriaPercentage * 100) / 100,
+    influences: influences
+  };
+}
+
+  function updateInfluenceBar(elementId, value, label) {
+    const html = `
+      <div class="factor-influence">
+        <span>${label}</span>
+        <div class="influence-bar">
+          <div class="influence-value" style="width: ${value}%"></div>
+        </div>
+        <span>${Math.round(value)}%</span>
+      </div>
+    `;
+    document.getElementById(elementId).innerHTML = html;
+  }
+
+  function getRiskLevel(percentage) {
+    if (percentage < 30) return { level: 'Low', class: 'risk-low', description: 'Conditions are not favorable for bacterial growth.' };
+    if (percentage < 60) return { level: 'Medium', class: 'risk-medium', description: 'Moderate risk of bacterial growth.' };
+    return { level: 'High', class: 'risk-high', description: 'High risk of bacterial proliferation!' };
+  }
+
+  async function fetchData() {
+    const response = await fetch('https://api.thingspeak.com/channels/2725180/feeds.json?results=60');
+    const data = await response.json();
+    return data;
+  }
+
+  function displayLatestData(latest) {
+    // Parse values
+    const temperature = parseFloat(latest.field1);
+    const ph = parseFloat(latest.field2);
+    const turbidity = parseFloat(latest.field3);
+    const tds = parseFloat(latest.field4);
+
+    // Calculate bacteria estimation
+    const bacteriaEstimation = estimateBacteriaGrowth(temperature, ph, turbidity, tds);
+    const riskInfo = getRiskLevel(bacteriaEstimation.percentage);
+
+    // Update display values
+    document.getElementById('temperature-value').textContent = `${temperature}°C`;
+    document.getElementById('ph-value').textContent = ph;
+    document.getElementById('turbidity-value').textContent = `${turbidity} NTU`;
+    document.getElementById('tds-value').textContent = `${tds} PPM`;
+    document.getElementById('bacteria-level').textContent = `${bacteriaEstimation.percentage}%`;
+
+    // Update gauge
+    document.getElementById('bacteria-gauge').style.height = `${bacteriaEstimation.percentage}%`;
+
+    // Update risk indicator
+    document.getElementById('risk-indicator').innerHTML = `
+      <span class="risk-level ${riskInfo.class}">${riskInfo.level} Risk</span>
+    `;
+    document.getElementById('risk-description').textContent = riskInfo.description;
+
+    // Update influence bars
+    updateInfluenceBar('temp-influence', bacteriaEstimation.influences.temperature, 'Growth Impact');
+    updateInfluenceBar('ph-influence', bacteriaEstimation.influences.ph, 'Growth Impact');
+    updateInfluenceBar('turbidity-influence', bacteriaEstimation.influences.turbidity, 'Growth Impact');
+    updateInfluenceBar('tds-influence', bacteriaEstimation.influences.tds, 'Growth Impact');
+
+    // Update analysis
+    // Update analysis
+    const analysisHtml = `
+      <div class="row">
+        <div class="col-md-4">
+          <img src="https://cdnl.iconscout.com/lottie/premium/thumb/microscope-and-bacteria-animation-download-in-lottie-json-gif-static-svg-file-formats--lab-accessory-equipment-biology-science-pack-technology-animations-4573736.gif" alt="Bacteria analysis" class="img-fluid rounded mb-3">
+        </div>
+        <div class="col-md-8">
+          <div class="${bacteriaEstimation.percentage >= 60 ? 'bacteria-alert' : 'bacteria-safe'}">
+            <h4>Current Status</h4>
+            <p><strong>Bacterial Growth Potential: ${bacteriaEstimation.percentage}%</strong></p>
+            <p>${riskInfo.description}</p>
+          </div>
+          <h4>Parameter Analysis</h4>
+          <ul>
+            <li>Temperature (${temperature}°C): ${
+            temperature >= 20 && temperature <= 40
+                    ? 'Optimal for bacterial growth'
+                    : 'Outside optimal range'
+    }</li>
+            <li>pH Level (${ph}): ${
+            ph >= 6.5 && ph <= 7.5
+                    ? 'Optimal for bacterial growth'
+                    : 'Outside optimal range'
+    }</li>
+            <li>Turbidity (${turbidity} NTU): ${
+            turbidity >= 10
+                    ? 'Favorable for bacterial growth'
+                    : 'Below favorable threshold'
+    }</li>
+            <li>TDS (${tds} PPM): ${
+            tds >= 200 && tds <= 1000
+                    ? 'Optimal for bacterial growth'
+                    : 'Outside optimal range'
+    }</li>
+          </ul>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('bacteriaAnalysis').innerHTML = analysisHtml;
+  }
+
+  function plotChart(fieldData, title, chartDiv, yAxisLabel) {
+    const timestamps = fieldData.map(feed => feed.created_at);
+    const values = fieldData.map(feed => parseFloat(feed.value));
+
+    const layout = {
+      title: {
+        text: title,
+        font: { size: 20, color: '#2c3e50' }
+      },
+      xaxis: {
+        title: 'Timestamp',
+        tickangle: 45,
+        gridcolor: '#f0f0f0'
+      },
+      yaxis: {
+        title: yAxisLabel,
+        gridcolor: '#f0f0f0'
+      },
+      margin: { t: 50, l: 50, r: 20, b: 80 },
+      plot_bgcolor: '#ffffff',
+      paper_bgcolor: '#ffffff',
+    };
+
+    const trace = {
+      x: timestamps,
+      y: values,
+      type: 'scatter',
+      mode: 'lines+markers',
+      line: {
+        color: '#3498db',
+        width: 3,
+        shape: 'spline'
+      },
+      marker: {
+        color: '#2980b9',
+        size: 8
+      }
+    };
+
+    Plotly.newPlot(chartDiv, [trace], layout, { responsive: true });
+  }
+
+  async function init() {
+    const data = await fetchData();
+    const latest = data.feeds[data.feeds.length - 1];
+    displayLatestData(latest);
+
+    const recentData = data.feeds.slice(-20);
+
+    // Plot charts for bacteria and other parameters
+    plotChart(
+            recentData.map(f => ({ created_at: f.created_at, value: parseFloat(f.field5) })),
+            'Bacteria Growth Trends',
+            'BacteriaPercentageChart',
+            'Bacteria Percentage (%)'
+    );
+
+    plotChart(
+            recentData.map(f => ({ created_at: f.created_at, value: parseFloat(f.field1) })),
+            'Temperature Trends',
+            'temperatureChart',
+            'Temperature (°C)'
+    );
+
+    plotChart(
+            recentData.map(f => ({ created_at: f.created_at, value: parseFloat(f.field2) })),
+            'pH Level Trends',
+            'phChart',
+            'pH Level'
+    );
+
+    plotChart(
+            recentData.map(f => ({ created_at: f.created_at, value: parseFloat(f.field3) })),
+            'Turbidity Trends',
+            'turbidityChart',
+            'Turbidity (NTU)'
+    );
+
+    plotChart(
+            recentData.map(f => ({ created_at: f.created_at, value: parseFloat(f.field4) })),
+            'TDS Trends',
+            'TDSChart',
+            'TDS (PPM)'
+    );
+  }
+
+  init();
+  setInterval(init, 15000); // Refresh data every 15 seconds
+</script>
+<!-- Footer -->
+<footer class="mt-5">
+  <div class="container">
+    <div class="row">
+      <!-- About Section -->
+      <div class="col-md-4">
+        <h5 class="text-primary">About</h5>
+        <p>
+          The Water Quality Monitoring Dashboard provides <br> real-time insights into key water parameters, <br> enabling better decision-making for health and safety.
+        </p>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="col-md-4">
+        <h5 class="text-primary">Quick Links</h5>
+        <ul class="list-unstyled">
+          <li><a href="#temperatureChart" class="text-dark">Temperature Trends</a></li>
+          <li><a href="#phChart" class="text-dark">pH Level Trends</a></li>
+          <li><a href="#turbidityChart" class="text-dark">Turbidity Trends</a></li>
+          <li><a href="#TDSChart" class="text-dark">TDS Trends</a></li>
+          <li><a href="#BacteriaPercentageChart" class="text-dark">Bacteria Growth Trends</a></li>
+        </ul>
+      </div>
+
+      <!-- Contact Info -->
+      <div class="col-md-4">
+        <h5 class="text-primary">Contact</h5>
+        <p>
+          <i class="fas fa-envelope me-2"></i>support@waterqualitymonitor.com
+        </p>
+        <p>
+          <i class="fas fa-phone me-2"></i>+8801xxxxxxx
+        </p>
+        <p>
+          <i class="fas fa-map-marker-alt me-2"></i>Independent University, Bangladesh
+        </p>
+      </div>
+    </div>
+
+    <hr class="my-4">
+
+    <!-- Bottom Footer -->
+    <div class="text-center">
+      <p class="mb-0">
+        &copy; 2024 Water Bacteria Analysis Dashboard. All rights reserved. |
+        <a href="/privacy-policy" class="text-primary">Privacy Policy</a> |
+        <a href="/terms-of-service" class="text-primary">Terms of Service</a>
+      </p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  footer {
+    background-color: rgba(44, 62, 80, 0.05); /* Light shadow-like effect */
+    padding: 2rem 0;
+    font-size: 0.9rem;
+    color: #2c3e50;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+  }
+
+  footer a {
+    text-decoration: none;
+  }
+
+  footer a:hover {
+    text-decoration: underline;
+  }
+
+  footer h5 {
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+  }
+
+  footer hr {
+    border-color: rgba(0, 0, 0, 0.1);
+  }
+</style>
+</body>
+</html>
